@@ -32,3 +32,8 @@ In simplified form, this is a substitute for the syntax:
 But with a pinch of magic.
 
 _rm4env works similarly.
+
+### TODO
+
+- [ ] handle operators **+=** and **=+** 
+- [ ] handle correctlly operator **=**, prorably it should assign instead of appending
