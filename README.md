@@ -35,5 +35,5 @@ _rm4env works similarly.
 
 ### TODO
 
-- [ ] handle operators **+=** and **=+** 
-- [ ] handle correctlly operator **=**, prorably it should assign instead of appending
+- [ ] handle operators **+=** and **=+**
+- [ ] handle correctlly operator **=**, probably it should assign instead of appending
