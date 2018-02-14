@@ -41,7 +41,7 @@ function _add2env { #{{{
 
         typeset valueOfVariable=$(eval echo "$(printf "$%s" "$variable")")
         if [ -z "$valueOfVariable" ]; then
-            eval "$variable='$value'"
+            eval "$variable=$value"
             # shellcheck disable=SC2163
             export "$variable"
         else
@@ -49,7 +49,7 @@ function _add2env { #{{{
                 ${value}${separator}* | *${separator}${value}${separator}* | *${separator}${value} | $value )
                     ;;
                 *)
-                    eval "$variable='${valueOfVariable}${separator}${value}'"
+                    eval "$variable=${valueOfVariable}${separator}${value}"
                     # shellcheck disable=SC2163
                     export "$variable"
                     ;;
@@ -104,7 +104,7 @@ function _rm4env { #{{{
         case $valueOfVariable in
             ${value}${separator}*|*${separator}${value}${separator}*|*${separator}${value}|$value)
                 typeset newValue=$(echo "${valueOfVariable}" | perl -p -e "s#${separator}${value}|^${value}${separator}?##g")
-                eval "$variable='$newValue'"
+                eval "$variable=$newValue"
                 # shellcheck disable=SC2163
                 export "$variable"
                 ;;
