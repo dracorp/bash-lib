@@ -33,7 +33,17 @@ But with a pinch of magic.
 
 _rm4env works similarly.
 
+### ~ tilde
+
+Tilde is always expanded.
+
+    _add2env VAR="~/tmp"
+    _add2env VAR=~/log
+    $ echo $VAR
+    /home/dracorp/tmp:/home/dracorp/log
+    
 ### TODO
 
 - [ ] handle operators **+=** and **=+**
 - [ ] handle correctlly operator **=**, probably it should assign instead of appending
+- [ ] there is an issue with a space in the value
