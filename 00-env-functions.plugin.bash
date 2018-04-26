@@ -18,6 +18,7 @@ function _add2env { #{{{
         return 1
     fi
 
+    : ${DEBUG_DEVEL=0}
     typeset value variable separator
     typeset modification=post
 
@@ -36,35 +37,47 @@ function _add2env { #{{{
         separator=$3
     fi
 
-    # checking type of modification
-    if [[ $value =~ \+= ]]; then
-    # pre-append to variable
-    # _add2env VARIABLE=+value
-        modification=post
-        variable=${value%+=*}
-        value=${value#*+=}
-        separator=${2:-:}
-    elif [[ $value =~ =\+ ]]; then
-    # append to variable
-    # _add2env VARIABLE+=value
-        modification=pre
-        variable=${value%=+*}
-        value=${value#*=+}
-        separator=${2:-:}
-    elif [[ $value =~ = ]]; then
-    # _add2env VARIABLE=value
-        modification=assign
-        variable=${value%=*}
-        value=${value#*=}
-        separator=${2:-:}
+    if [ $# -eq 1 ]; then
+        # checking type of modification
+        if [[ $value =~ \+= ]]; then
+        # pre-append to variable
+        # _add2env VARIABLE=+value
+            modification=post
+            variable=${value%+=*}
+            value=${value#*+=}
+            separator=${2:-:}
+        elif [[ $value =~ =\+ ]]; then
+        # append to variable
+        # _add2env VARIABLE+=value
+            modification=pre
+            variable=${value%=+*}
+            value=${value#*=+}
+            separator=${2:-:}
+        elif [[ $value =~ = ]]; then
+        # _add2env VARIABLE=value
+            modification=assign
+            variable=${value%=*}
+            value=${value#*=}
+            separator=${2:-:}
+        fi
+    fi
+
+    if (( DEBUG_DEVEL )); then
+        echo "modification: $modification, variable: $variable, separator $separator, value: $value" >&2
     fi
 
     typeset valueOfVariable=$(eval echo "$(printf "$%s" "$variable")")
     if [ -z "$valueOfVariable" ]; then
         # simple assign
+        if (( DEBUG_DEVEL )); then
+            echo eval "$variable=$value" >&2
+        fi
         eval "$variable=$value"
         # shellcheck disable=SC2163
         export "$variable"
+        if (( DEBUG_DEVEL )); then
+            echo export "$variable"
+        fi
     else
         case "$valueOfVariable" in
             # already set
@@ -73,17 +86,29 @@ function _add2env { #{{{
             *)
                 case $modification in
                     post)
+                        if (( DEBUG_DEVEL )); then
+                            echo eval "$variable=${valueOfVariable}${separator}${value}"
+                        fi
                         eval "$variable=${valueOfVariable}${separator}${value}"
                         ;;
                     pre)
+                        if (( DEBUG_DEVEL )); then
+                            echo eval "$variable=${value}${separator}${valueOfVariable}"
+                        fi
                         eval "$variable=${value}${separator}${valueOfVariable}"
                         ;;
                     assign)
+                        if (( DEBUG_DEVEL )); then
+                            echo eval "$variable=$value"
+                        fi
                         eval "$variable=$value"
                         ;;
                 esac
                 # shellcheck disable=SC2163
                 export "$variable"
+                if (( DEBUG_DEVEL )); then
+                    echo export "$variable"
+                fi
                 ;;
         esac
     fi
@@ -111,8 +136,9 @@ function _rm4env { #{{{
         return 1
     fi
 
+    : ${DEBUG_DEVEL=0}
     typeset value variable separator
-    typeset modification=
+    typeset modification=remove
 
     if [ $# -eq 1 ]; then
         value=${1}
@@ -129,25 +155,41 @@ function _rm4env { #{{{
     fi
 
     # _rm4env VARIABLE=value
-    if [[ $value =~ = ]]; then
+    if [[ $# -eq 1 && $value =~ = ]]; then
         modification=assign
         variable=${value%=*}
         value=${value#*=}
         separator=${2:-:}
     fi
 
+    if (( DEBUG_DEVEL )); then
+        echo "modification: $modification, variable: $variable, separator $separator, value: $value" >&2
+    fi
+
     if [[ "$modification" == assign ]]; then
+        if (( DEBUG_DEVEL )); then
+            echo eval "$variable=$value" >&2
+        fi
         eval "$variable=$value"
         # shellcheck disable=SC2163
         export "$variable"
+        if (( DEBUG_DEVEL )); then
+            echo export "$variable"
+        fi
     else
         typeset valueOfVariable=$(eval echo "$(printf "$%s" "$variable")")
         case $valueOfVariable in
             ${value}${separator}*|*${separator}${value}${separator}*|*${separator}${value}|$value)
                 typeset newValue=$(echo "${valueOfVariable}" | perl -p -e "s#${separator}${value}|^${value}${separator}?##g")
+                if (( DEBUG_DEVEL )); then
+                    echo eval "$variable=$newValue" >&2
+                fi
                 eval "$variable=$newValue"
                 # shellcheck disable=SC2163
                 export "$variable"
+                if (( DEBUG_DEVEL )); then
+                    echo export "$variable"
+                fi
                 ;;
         esac
     fi
