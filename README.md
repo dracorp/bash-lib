@@ -2,7 +2,7 @@
 
 Various Bash functions. It could be used as a library.
 
-## 00-env-functions.sh
+## 00-env-functions.plugin.bash
 
 A set of functions to manipulate environemt variables.
 
