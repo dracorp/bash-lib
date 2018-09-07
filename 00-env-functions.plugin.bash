@@ -62,6 +62,11 @@ function _add2env { #{{{
         fi
     fi
 
+    # evaluate tylde
+    if [[ $value =~ '~' ]]; then
+        value=$(eval echo "$value")
+    fi
+
     if (( DEBUG_DEVEL )); then
         echo "modification: $modification, variable: $variable, separator $separator, value: $value" >&2
     fi
@@ -79,38 +84,38 @@ function _add2env { #{{{
             echo export "$variable"
         fi
     else
-        case "$valueOfVariable" in
-            # already set
-            ${value}${separator}* | *${separator}${value}${separator}* | *${separator}${value} | $value )
-                ;;
-            *)
-                case $modification in
-                    post)
-                        if (( DEBUG_DEVEL )); then
-                            echo eval "$variable=${valueOfVariable}${separator}${value}"
-                        fi
-                        eval "$variable=${valueOfVariable}${separator}${value}"
-                        ;;
-                    pre)
-                        if (( DEBUG_DEVEL )); then
-                            echo eval "$variable=${value}${separator}${valueOfVariable}"
-                        fi
-                        eval "$variable=${value}${separator}${valueOfVariable}"
-                        ;;
-                    assign)
-                        if (( DEBUG_DEVEL )); then
-                            echo eval "$variable=$value"
-                        fi
-                        eval "$variable=$value"
-                        ;;
-                esac
-                # shellcheck disable=SC2163
-                export "$variable"
-                if (( DEBUG_DEVEL )); then
-                    echo export "$variable"
-                fi
-                ;;
-        esac
+        if [[ "$modification" = assign ]]; then
+            if (( DEBUG_DEVEL )); then
+                echo eval "$variable=$value"
+            fi
+            eval "$variable=$value"
+        else
+            case "$valueOfVariable" in ${value}${separator}* | *${separator}${value}${separator}* | *${separator}${value} | $value )
+                    : echo already set
+                    ;;
+                *)
+                    case $modification in
+                        post)
+                            if (( DEBUG_DEVEL )); then
+                                echo eval "$variable=${valueOfVariable}${separator}${value}"
+                            fi
+                            eval "$variable=${valueOfVariable}${separator}${value}"
+                            ;;
+                        pre)
+                            if (( DEBUG_DEVEL )); then
+                                echo eval "$variable=${value}${separator}${valueOfVariable}"
+                            fi
+                            eval "$variable=${value}${separator}${valueOfVariable}"
+                            ;;
+                    esac
+                    # shellcheck disable=SC2163
+                    export "$variable"
+                    if (( DEBUG_DEVEL )); then
+                        echo export "$variable"
+                    fi
+                    ;;
+            esac
+        fi
     fi
 
     return 0
